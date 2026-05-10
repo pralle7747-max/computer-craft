@@ -1,0 +1,28 @@
+rednet.open("back")
+local mon = peripheral.find("monitor")
+
+while true do
+    local id, data = rednet.receive("SATELLITE_DATA")
+    
+    if mon then term.redirect(mon) end
+    term.clear()
+    term.setCursorPos(1,1)
+    
+    term.setTextColor(colors.yellow)
+    print("=== SAT-MONITOR ===")
+    term.setTextColor(colors.white)
+    print("Sat-Pos:  " .. data.cords)
+    print("Fuel:     " .. data.fuel)
+    print("-------------------")
+    term.setTextColor(colors.lime)
+    print("Spieler:  " .. data.player)
+    
+    term.setTextColor(colors.red)
+    print("\n[H] Taste fuer Heimkehr")
+    
+    -- Taste abfragen
+    local event, key = os.pullEvent("key")
+    if key == keys.h then
+        rednet.broadcast("RETRIEVE")
+    end
+end
