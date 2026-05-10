@@ -1,23 +1,21 @@
-rednet.open("right") -- Oder "left" / "back", wo dein Modem ist
+-- SATELLITEN-TURTLE
+rednet.open("right") -- Modem-Seite (meistens rechts)
 
 local x, y, z = 0, 0, 0
 
--- INITIALER START: HOCHFLIEGEN
-print("Betanke Turtle...")
+-- 1. TANKEN & START
+print("Status: Betanken...")
 turtle.select(1)
-turtle.refuel() -- Frisst Kohle aus Slot 1
+turtle.refuel() -- Nimmt Kohle aus Slot 1
 
-print("Hebe ab...")
-for i = 1, 10 do -- Fliegt 10 Bloecke hoch
-    if turtle.up() then 
-        y = y + 1 
-    else
-        print("Blockiert!")
-    end
+print("Status: Abheben...")
+for i = 1, 15 do -- Fliegt 15 Blöcke hoch
+    if turtle.up() then y = y + 1 end
 end
 
+-- 2. HAUPTSCHLEIFE
 while true do
-    -- Zufällige Bewegung
+    -- Ein bisschen bewegen (Random Orbit)
     local r = math.random(1, 4)
     if r == 1 then if turtle.forward() then x = x + 1 end
     elseif r == 2 then if turtle.back() then x = x - 1 end
@@ -25,16 +23,17 @@ while true do
     elseif r == 4 then turtle.turnRight() end
 
     -- DATEN SENDEN
-    local status = {
+    local data = {
         posX = x,
         posY = y,
         posZ = z,
         fuel = turtle.getFuelLevel()
     }
     
-    -- Wir senden es an ALLE mit dem Protokoll "SAT_DATA"
-    rednet.broadcast(status, "SAT_DATA")
-    print("Sende: X:"..x.." Y:"..y.." F:"..status.fuel)
-    
-    sleep(1) -- Warte kurz
+    rednet.broadcast(data, "SAT_UPDATE")
+    print("Gesendet: X:"..x.." F:"..data.fuel)
+
+    -- WARTEZEIT (Hier kannst du die Sekunden einstellen)
+    -- 120 fuer 2 Minuten, 10 fuer schnelles Update
+    sleep(10) 
 end
