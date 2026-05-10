@@ -1,0 +1,76 @@
+-- OFFICE MASTER OS
+local mon = peripheral.find("monitor")
+local speaker = peripheral.find("speaker")
+rednet.open("back") -- Modem-Seite prüfen!
+
+if mon then
+    term.redirect(mon)
+    mon.setTextScale(1)
+end
+
+local function drawUI()
+    term.setBackgroundColor(colors.black)
+    term.clear()
+    
+    -- Rahmen
+    term.setTextColor(colors.yellow)
+    for i=1, 25 do
+        term.setCursorPos(i, 1) print("-")
+        term.setCursorPos(i, 12) print("-")
+    end
+    
+    -- Titel
+    term.setCursorPos(5, 2)
+    term.setTextColor(colors.lime)
+    print("MCD HQ - CONTROL")
+    
+    -- Status Büros
+    term.setTextColor(colors.white)
+    term.setCursorPos(2, 4)
+    print("Buero A: ONLINE")
+    term.setCursorPos(2, 5)
+    print("Buero B: ONLINE")
+    
+    -- Menü
+    term.setTextColor(colors.lightGray)
+    term.setCursorPos(2, 8)
+    print("[1] Rundruf senden")
+    term.setCursorPos(2, 9)
+    print("[2] Alarm ausloesen")
+    term.setCursorPos(2, 10)
+    print("[3] Musik abspielen")
+end
+
+while true do
+    drawUI()
+    local event, key = os.pullEvent("key")
+    
+    if key == keys.one then
+        term.setCursorPos(2, 11)
+        term.setTextColor(colors.yellow)
+        write("Nachricht: ")
+        local msg = read()
+        rednet.broadcast(msg, "BUREAU_CHAT")
+        if speaker then speaker.playNote("bell", 3, 12) end
+        
+    elseif key == keys.two then
+        rednet.broadcast("ALARM", "SECURITY")
+        if speaker then
+            for i=1, 5 do
+                speaker.playNote("bassdrum", 3, 1)
+                sleep(0.2)
+                speaker.playNote("bassdrum", 3, 5)
+                sleep(0.2)
+            end
+        end
+    elseif key == keys.three then
+        if speaker then
+            -- Kleiner Jingle
+            local notes = {12, 14, 16, 12, 16, 18, 20}
+            for _, n in ipairs(notes) do
+                speaker.playNote("chime", 3, n)
+                sleep(0.15)
+            end
+        end
+    end
+end
