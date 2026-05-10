@@ -1,0 +1,57 @@
+local detector = peripheral.find("playerDetector") -- Falls vorhanden
+rednet.open("right")
+
+local startX, startY, startZ = 0, 0, 0
+local x, y, z = 0, 0, 0
+
+-- Sicherheit: Berechnet Distanz zum Start
+local function getDistanceHome()
+    return math.abs(x) + math.abs(y) + math.abs(z) + 2 -- +2 Puffer
+end
+
+local function goHome()
+    print("Notfall-Heimkehr eingeleitet!")
+    -- Erst auf Hoehe fliegen, dann X/Z (verhindert Kollisionen)
+    while y > 0 do if turtle.down() then y = y - 1 end end
+    while x > 0 do turtle.turnLeft() turtle.forward() x = x - 1 end -- Vereinfacht
+    -- Hier muesste eine richtige Pfadfindung rein
+    print("Gelandet.")
+end
+
+while true do
+    -- 1. Fuel Check
+    if turtle.getFuelLevel() <= getDistanceHome() then
+        goHome()
+        break
+    end
+
+    -- 2. Random Flug (Satelliten-Orbit)
+    local r = math.random(1, 4)
+    if r == 1 then if turtle.forward() then x = x + 1 end
+    elseif r == 2 then turtle.turnLeft()
+    elseif r == 3 then turtle.turnRight()
+    end
+
+    -- 3. Spieler suchen (Wenn Detector da ist)
+    local playerPos = "Kein Spieler"
+    if detector then
+        local players = detector.getPlayersInRange(50)
+        if #players > 0 then
+            local p = players[1]
+            playerPos = "X:"..p.x.." Y:"..p.y.." Z:"..p.z
+        end
+    end
+
+    -- 4. Daten an Bodenstation senden
+    rednet.broadcast({
+        cords = "X:"..x.." Y:"..y.." Z:"..z,
+        fuel = turtle.getFuelLevel(),
+        player = playerPos
+    }, "SATELLITE_DATA")
+
+    -- 5. Auf Funkbefehl warten (z.B. "KOMM ZURUECK")
+    local id, msg = rednet.receive(1)
+    if msg == "RETRIEVE" then goHome() break end
+    
+    sleep(0.5)
+end
