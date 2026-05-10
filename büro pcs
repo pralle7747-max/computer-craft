@@ -1,0 +1,27 @@
+rednet.open("back") -- Modem-Seite anpassen
+term.clear()
+term.setCursorPos(1,1)
+print("Buero-Terminal bereit...")
+
+while true do
+    local id, msg, protocol = rednet.receive()
+    
+    if protocol == "BUREAU_CHAT" then
+        term.setTextColor(colors.yellow)
+        print("\n[NACHRICHT VOM CHEF]:")
+        term.setTextColor(colors.white)
+        print(msg)
+        -- Ton abspielen wenn Speaker vorhanden
+        local s = peripheral.find("speaker")
+        if s then s.playNote("pling", 3, 12) end
+        
+    elseif protocol == "SECURITY" and msg == "ALARM" then
+        term.setBackgroundColor(colors.red)
+        term.clear()
+        term.setCursorPos(5,5)
+        print("!!! ALARM !!!")
+        sleep(5)
+        term.setBackgroundColor(colors.black)
+        term.clear()
+    end
+end
