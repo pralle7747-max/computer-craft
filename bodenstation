@@ -1,40 +1,45 @@
-rednet.open("back") -- Modem-Seite (meistens hinten)
+-- BÜRO MONITOR
+rednet.open("back") -- Modem-Seite am PC prüfen!
 local mon = peripheral.find("monitor")
 
-if mon then
-    mon.setTextScale(1)
-end
+if mon then mon.setTextScale(1) end
 
-local function updateDisplay(data)
-    local target = mon or term
-    target.setBackgroundColor(colors.black)
-    target.clear()
-    target.setCursorPos(1,1)
+local function updateScreen(d)
+    local t = mon or term
+    t.setBackgroundColor(colors.black)
+    t.clear()
     
-    target.setTextColor(colors.yellow)
-    target.write("=== SAT-STATUS ===")
+    t.setCursorPos(1,1)
+    t.setTextColor(colors.yellow)
+    t.write("=== SAT-SCANNER ===")
     
-    target.setTextColor(colors.white)
-    target.setCursorPos(1,3)
-    target.write("Position: X:"..data.posX.." Y:"..data.posY.." Z:"..data.posZ)
+    t.setTextColor(colors.white)
+    t.setCursorPos(1,3)
+    t.write("KOORDINATEN:")
+    t.setCursorPos(1,4)
+    t.setTextColor(colors.lime)
+    t.write("X: "..d.posX.." Y: "..d.posY.." Z: "..d.posZ)
     
-    target.setCursorPos(1,5)
-    target.setTextColor(data.fuel < 100 and colors.red or colors.lime)
-    target.write("Fuel: " .. data.fuel)
+    t.setTextColor(colors.white)
+    t.setCursorPos(1,6)
+    t.write("ENERGIE (FUEL):")
+    t.setCursorPos(1,7)
+    t.setTextColor(d.fuel < 200 and colors.red or colors.orange)
+    t.write(d.fuel .. " Einheiten")
     
-    target.setCursorPos(1,7)
-    target.setTextColor(colors.lightGray)
-    target.write("Letztes Update: " .. textutils.formatTime(os.time(), true))
+    t.setCursorPos(1,9)
+    t.setTextColor(colors.gray)
+    t.write("Letzter Ping: "..textutils.formatTime(os.time(), true))
 end
 
 term.clear()
-print("Warte auf Satelliten-Daten...")
+print("Warte auf Satelliten-Signal...")
 
 while true do
-    -- Warte auf Nachricht mit dem Protokoll "SAT_DATA"
-    local id, msg, protocol = rednet.receive("SAT_DATA")
+    -- Wartet auf die Daten von der Turtle
+    local id, msg, prot = rednet.receive("SAT_UPDATE")
     
-    if protocol == "SAT_DATA" and type(msg) == "table" then
-        updateDisplay(msg)
+    if msg and type(msg) == "table" then
+        updateScreen(msg)
     end
 end
